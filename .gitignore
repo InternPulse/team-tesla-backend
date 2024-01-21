@@ -1,0 +1,15 @@
+.coverage
+.coveragerc
+htmlcov
+.env
+appenv/
+db.sqlite3
+
+# ignoring app caches and migrations to avoid conflict during deployment
+!**/__pycache__**
+**/__pycache__/**
+**/migrations/**
+!**/migrations
+!**/migrations/__init__.py
+
+to do.txt
