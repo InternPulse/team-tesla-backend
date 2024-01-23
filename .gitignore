@@ -13,9 +13,8 @@ db.sqlite3
 !**/migrations/__init__.py
 
 to do.txt
-<<<<<<< HEAD
 .env
-=======
+venv/
+
 Dockerfile
 docker-compose.yml
->>>>>>> origin/development
