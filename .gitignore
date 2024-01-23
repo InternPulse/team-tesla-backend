@@ -13,3 +13,5 @@ db.sqlite3
 !**/migrations/__init__.py
 
 to do.txt
+Dockerfile
+docker-compose.yml
