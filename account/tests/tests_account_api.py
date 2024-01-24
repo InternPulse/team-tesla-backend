@@ -19,7 +19,7 @@ PROFILE_URL = reverse('account:profile')
 
 # function for creating new user account
 def create_user(**params):
-    '''Create and return a new user.'''
+    '''Create and return a new user account.'''
     return get_user_model().objects.create_user(**params)
 
 
@@ -32,6 +32,8 @@ class AccountAPITests(TestCase):
     def test_signup_user_account(self):
         '''Test signing up a new user'''
         user_details = {
+            'first_name': 'Ephraim',
+            'last_name': 'Daniel',
             'email': 'test@gmail.com',
             'password': 'MyPass12345',
             'accepted_terms': True
