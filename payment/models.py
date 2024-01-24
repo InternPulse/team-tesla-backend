@@ -16,7 +16,7 @@ class Payment(models.Model):
     method = models.CharField(max_length=55)
     status = models.CharField(max_length=55)
     created_at = models.DateField(auto_now_add=True)
-    due_at = models.DateField()
+    due_at = models.DateField(blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
