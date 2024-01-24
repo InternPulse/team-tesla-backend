@@ -17,26 +17,21 @@ import os
 # Automatically configure from environment variables or .env file
 config = AutoConfig()
 
-# Use the configured values
-SECRET_KEY = config('SECRET_KEY', default='')  # Provide a default value if needed
-DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=lambda v: [s.strip() for s in v.split(',')])
-
-<<<<<<< HEAD
 # Add other configurations
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-=======
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+# Use the configured values
+SECRET_KEY = config('SECRET_KEY', default='')  # Provide a default value if needed
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['*', 'localhost']
->>>>>>> origin/development
 
 # Custom user model
 AUTH_USER_MODEL = 'account.CustomUser'
@@ -58,6 +53,8 @@ INSTALLED_APPS = [
     # apps
     'account.apps.AccountConfig',
     'invoice_generation',
+    'payment',
+    'notification'
 ]
 
 MIDDLEWARE = [

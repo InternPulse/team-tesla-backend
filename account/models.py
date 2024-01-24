@@ -30,9 +30,15 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     '''Custom django user db model'''
     email = models.EmailField(_('email address'), unique=True)
+    otp = models.IntegerField()
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    business_name = models.CharField(max_length=255, blank=True, null=True)
+    individual_url = models.CharField(max_length=255, blank=True, null=True)
+    business = models.BooleanField(default=False, blank=True, null=True)
+    individual = models.BooleanField(default=False, blank=True, null=True)
     email_verified = models.BooleanField(default=False)
     accepted_terms = models.BooleanField(default=False)
-    business = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
