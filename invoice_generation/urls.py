@@ -1,11 +1,15 @@
 # invoice_generation/urls.py
 
 from django.urls import path
-from .views import get_invoices, create_invoice, update_invoice, delete_invoice
+from . import views
+
+
+app_name = 'invoice_generation'
 
 urlpatterns = [
-    path('invoices/', get_invoices, name='get_invoices'),
-    path('invoices/create/', create_invoice, name='create_invoice'),
-    path('invoices/<int:invoice_id>/update/', update_invoice, name='update_invoice'),
-    path('invoices/<int:invoice_id>/delete/', delete_invoice, name='delete_invoice'),
+    path('', views.AllUserClientInvoiceView.as_view(), name='get_user_client_invoice'),
+    path('create/', views.CreateClientInvoiceView.as_view(), name='post_user_clients_invoice'),
+    path('detail/<int:pk>/', views.GetUpdateInvoiceView.as_view(), name='get_invoice_detail'),
+    path('client/', views.AllUserClientsView.as_view(), name='get_user_clients'),
+    path('client/detail/<int:pk>/', views.GetUpdateClientView.as_view(), name='get_client_detail')
 ]
