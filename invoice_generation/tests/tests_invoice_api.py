@@ -1,16 +1,12 @@
 '''
 Tests all invoice_generation API endpoints.
 '''
-import json
-
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
 from rest_framework.test import APIClient
 from rest_framework import status
-
-from invoice_generation.models import Invoice, Client
 
 
 GET_ALL_USER_CLIENTS = reverse('invoice_generation:get_user_clients')
