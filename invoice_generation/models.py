@@ -11,6 +11,7 @@ class Client(models.Model):
         ('3', 'Miss')
     )
 
+    user_id = models.ForeignKey(CustomUser, related_name='user_client', on_delete=models.CASCADE)
     title = models.CharField(max_length=1, choices=TITLE_CHOICE)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
@@ -18,6 +19,8 @@ class Client(models.Model):
     customer_email = models.EmailField()
     work_phone = models.CharField(max_length=255, blank=True, null=True)
     personal_phone = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
@@ -33,7 +36,7 @@ class Invoice(models.Model):
     draft = models.BooleanField(default=False)
     status = models.CharField(max_length=55)
     created_at = models.DateField(auto_now_add=True)
-    due_at = models.DateField()
+    due_at = models.DateField(blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
