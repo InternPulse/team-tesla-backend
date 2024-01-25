@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework import exceptions
 
 from .models import Client, Invoice
-from .serializer import ClientSerializer, InvoiceSerializer
+from .serializers import ClientSerializer, InvoiceSerializer, ListInvoiceSerializer
 from account.authentication import CustomAuthentication
 
 
@@ -45,7 +45,7 @@ class AllUserClientsView(APIView):
         return Response(context, status=status.HTTP_400_BAD_REQUEST)
     
 
-class UpdateDeleteClientView(APIView):
+class GetUpdateClientView(APIView):
     '''Returns client details and  associated with user'''
 
     authentication_classes = [CustomAuthentication,]
@@ -93,19 +93,12 @@ class UpdateDeleteClientView(APIView):
         return Response(context, status=status.HTTP_400_BAD_REQUEST)
     
 
-class AllUserClientInvoiceView(APIView):
+class CreateClientInvoiceView(APIView):
     '''Returns all and create invoices associated with user and client'''
 
     authentication_classes = [CustomAuthentication,]
     permission_classes = [IsAuthenticated]
     serializer_class = InvoiceSerializer
-
-    def get(self, request):
-        '''Get list of all user invoices associated with it\'s clients'''
-        invoices = Invoice.objects.filter(user_id=request.user)
-        serializer = self.serializer_class(invoices, context={'request': request}, many=True)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         '''Create invoice for a client and user'''
@@ -119,24 +112,24 @@ class AllUserClientInvoiceView(APIView):
             context['message'] = 'Invoice created successful'
             context.update(serializer.data)
             return Response(context, status=status.HTTP_200_OK)
-        
+
         context['status'] = 'error'
         context.update(serializer.errors)
 
         return Response(context, status=status.HTTP_400_BAD_REQUEST)
-    
 
-class UpdateDeleteInvoiceView(APIView):
+
+class GetUpdateInvoiceView(APIView):
     '''Returns invoice details associated with a client and user'''
 
     authentication_classes = [CustomAuthentication,]
     permission_classes = [IsAuthenticated]
     serializer_class = InvoiceSerializer
 
-    def get_object(self, request, pk, client):
+    def get_object(self, request, pk):
         context = {}
         try:
-            invoice = Invoice.objects.get(pk=pk, user_id=request.user, client_id=client)
+            invoice = Invoice.objects.get(pk=pk, user_id=request.user)
             return invoice
         except Client.DoesNotExist:
             context['status'] = 'error'
@@ -147,32 +140,19 @@ class UpdateDeleteInvoiceView(APIView):
         '''Gets the details for a client'''
         context = {}
 
-        client = Client.objects.filter(user_id=request.user, id=request.data['client_id'])
-        if client.count() < 0:
-            context['status'] = 'error'
-            context['message'] = 'Client not found'
-            return Response(context, status=status.HTTP_404_NOT_FOUND)
-        client = client.first()
-
-        invoice = self.get_object(request, pk, client)
+        invoice = self.get_object(request, pk)
         serializer = self.serializer_class(invoice)
         context['status'] = 'success'
         context.update(serializer.data)
 
         return Response(context, status.HTTP_200_OK)
 
+
     def put(self, request, pk):
         '''Update detail of a client'''
         context = {}
 
-        client = Client.objects.filter(user_id=request.user, id=request.data['client_id'])
-        if client.count() < 0:
-            context['status'] = 'error'
-            context['message'] = 'Client not found'
-            return Response(context, status=status.HTTP_404_NOT_FOUND)
-        client = client.first()
-
-        invoice = self.get_object(request, pk, client)
+        invoice = self.get_object(request, pk)
         serializer = self.serializer_class(invoice, data=request.data)
         if serializer.is_valid():
             serializer.save(user_id=request.user,)
@@ -186,3 +166,18 @@ class UpdateDeleteInvoiceView(APIView):
         context.update(serializer.errors)
 
         return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AllUserClientInvoiceView(APIView):
+    '''Returns all and create invoices associated with user and client'''
+
+    authentication_classes = [CustomAuthentication,]
+    permission_classes = [IsAuthenticated]
+    serializer_class = ListInvoiceSerializer
+
+    def get(self, request):
+        '''Get list of all user invoices associated with it\'s clients'''
+        invoices = Invoice.objects.filter(user_id=request.user)
+        serializer = self.serializer_class(invoices, context={'request': request}, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

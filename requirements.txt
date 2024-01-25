@@ -1,12 +1,10 @@
 asgiref==3.7.2
-<<<<<<< HEAD
 certifi==2023.11.17
 cloudinary==1.38.0
 Django==4.2.9
 django-cors-headers==4.3.1
 djangorestframework==3.14.0
 psycopg2-binary==2.9.1
-=======
 attrs==23.2.0
 Django==5.0.1
 djangorestframework==3.14.0
@@ -18,7 +16,6 @@ jsonschema-specifications==2023.12.1
 packaging==23.2
 psycopg2==2.9.9
 psycopg2-binary==2.9.9
->>>>>>> origin/development
 PyJWT==2.8.0
 python-decouple==3.8
 pytz==2023.3.post1

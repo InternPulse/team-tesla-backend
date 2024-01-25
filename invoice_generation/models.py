@@ -40,4 +40,4 @@ class Invoice(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Invoice {self.invoice_id} for {self.user_id.email}"
+        return f"Invoice {self.transaction_id} for {self.user_id.email}"
