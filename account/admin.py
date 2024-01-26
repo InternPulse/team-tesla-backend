@@ -10,24 +10,24 @@ from .models import CustomUser, Token
 class CustomUserAdmin(admin.ModelAdmin):
     '''CustomUser model customization'''
     ordering = ['id']
-    list_display = ['id', 'email', 'email_verified', 'accepted_terms', 'business', 'is_staff', 'is_active', 'created_at', 'updated_at']
+    list_display = ['id', 'first_name', 'last_name', 'email', 'email_verified', 'accepted_terms', 'business', 'is_staff', 'is_active', 'created_at', 'updated_at']
     readonly_fields = ['last_login', 'password']
 
     fieldsets = (
-        (None,{'fields':('email', 'password', 'last_login')}),
+        (None,{'fields':('first_name', 'last_name', 'email', 'password', 'last_login')}),
         ('permissions',{'fields':('email_verified', 'accepted_terms', 'business', 'is_staff', 'is_superuser', 'is_active', 'groups', 'user_permissions')})      
     )
 
     add_fieldsets = (
         (None, {
             'classes':('wide',),
-            'fields':('email', 'password1', 'password2', 'email_verified', 'accepted_terms', 'business', 'is_staff',
+            'fields':('first_name', 'last_name', 'email', 'password1', 'password2', 'email_verified', 'accepted_terms', 'business', 'is_staff',
             'is_superuser', 'is_active', 'groups', 'user_permissions'
             )}
         ),
     )
 
-    search_fields = ['id', 'email']
+    search_fields = ['id', 'email', 'first_name', 'last_name']
 
     list_editable = ['email_verified', 'accepted_terms', 'business', 'is_staff', 'is_active']
 

@@ -42,6 +42,8 @@ AUTH_USER_MODEL = 'account.CustomUser'
 INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
+    'rest_framework.authtoken',
+    'django_rest_passwordreset',
     'whitenoise.runserver_nostatic',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -73,7 +75,7 @@ ROOT_URLCONF = 'invoice.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR, 'templates/',],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -137,12 +139,25 @@ USE_I18N = True
 USE_TZ = True
 
 
+# Email configuration
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = config('EMAIL_PORT')
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = config('EMAIL')
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATICFILES_STORAGE="whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 STATIC_URL = 'static/'
+
+# STATICBASE_DIR = [BASE_DIR / 'static']
 
 STATIC_ROOT='static'
 
