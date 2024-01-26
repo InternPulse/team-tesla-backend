@@ -9,8 +9,10 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ['email', 'email_verified', 'accepted_terms', 'business', 'password']
+        fields = ['first_name', 'last_name', 'email', 'email_verified', 'accepted_terms', 'business', 'password']
         extra_kwargs = {
+            'first_name': {'write_only': True},
+            'last_name': {'write_only': True},
             'email': {'write_only': True},
             'email_verified': {'write_only': True},
             'accepted_terms': {'write_only': True},
@@ -30,6 +32,17 @@ class SignInSerializer(serializers.Serializer):
         style={'input_type': 'password'},
         trim_whitespace=True,
     )
+
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    '''Serializer for forgot password.'''
+    new_password = serializers.CharField(required=True)
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    '''Serializer for changing password.'''
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
 
 
 class RefreshTokenSerializer(serializers.Serializer):
