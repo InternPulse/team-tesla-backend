@@ -3,6 +3,7 @@ Views for user API.
 '''
 import json
 import requests
+import threading
 
 from django.db import transaction
 from django.contrib.auth import authenticate
@@ -11,27 +12,29 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.tokens import default_token_generator
-from django.http import Http404
+from django.utils import timezone
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.core.mail import EmailMultiAlternatives
 
-from rest_framework import exceptions
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import TokenAuthentication
 
-from account.models import Token
-from account.models import CustomUser
+from account.models import Token, CustomUser, OTP
 
 from .authentication import CustomAuthentication
-from .service import EmailService
+from .utils import generate_otp, send_email
 
 from account.serializers import (
         SignUpSerializer,
         SignInSerializer,
         ForgotPasswordSerializer,
         ProfileSerializer,
-        ChangePasswordSerializer
+        ChangePasswordSerializer,
+        OTPSerializer,
+        ResendOTPSerializer
     )
 
 
@@ -51,6 +54,7 @@ class SignUpView(APIView):
         context.update(serializer.data)
 
         return Response(context, status.HTTP_201_CREATED)
+
 
 class SignInView(APIView):
     '''Sign in user with valid credential'''
@@ -168,10 +172,101 @@ class ChangePasswordView(APIView):
                 context['status'] = 'success'
                 context['message'] = 'Password changed successfully.'
                 return Response(context, status=status.HTTP_200_OK)
-            
+
             context['status'] = 'error'
             context['message'] = 'Incorrect old password.'
             return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+        context['status'] = 'error'
+        context.update(serializer.errors)
+        return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResendOTPView(APIView):
+    '''Send new OTP to user'''
+    serializer_class = ResendOTPSerializer
+
+    def post(self, request):
+        context = {}
+        otp = generate_otp()
+
+        serializer = self.serializer_class(data=request.data)
+
+        if serializer.is_valid():
+            email = serializer.validated_data.get('email')
+            try:
+                user_otp = OTP.objects.get(user_id__email=email)
+            except OTP.DoesNotExist:
+                context['status'] = 'error'
+                context['message'] = 'Email not associated to user or otp'
+                return Response(context, status=status.HTTP_404_NOT_FOUND)
+
+            user_otp.generated_otp = otp
+            user_otp.save()
+
+            data = {
+                'email': email,
+                'otp': otp
+            }
+
+            subject = "OTP Resent by {title}".format(title="Invoice Pulse")
+            from_email = settings.DEFAULT_FROM_EMAIL
+            recipient_list = [email,]
+            email_template = render_to_string('account/otp.html', data)
+
+            try:
+                send_email(subject, email_template, from_email, recipient_list)
+                context['status'] = 'success'
+                context['message'] = 'OTP sent successful'
+                return Response(context, status=status.HTTP_200_OK)
+
+            except Exception as e:
+                context['status'] = 'error'
+                context['message'] = f'Email sending error: {e}'
+                return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+        context['status'] = 'error'
+        context.update(serializer.errors)
+        return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ValidateOTPView(APIView):
+    '''Validates OTP provided by user'''
+    serializer_class = OTPSerializer
+
+    def post(self, request):
+        context = {}
+        serializer = self.serializer_class(data=request.data)
+
+        if serializer.is_valid():
+            otp = int(serializer.validated_data.get('otp'))
+
+            try:
+                user_otp = OTP.objects.get(generated_otp=otp)
+            except OTP.DoesNotExist:
+                context['status'] = 'error'
+                context['message'] = 'Invalid OTP'
+                return Response(context, status=status.HTTP_404_NOT_FOUND)
+
+            otp_time = timezone.now() - user_otp.updated_at
+            exp_time = timezone.timedelta(minutes=5)
+
+            if otp_time > exp_time:
+                context['status'] = 'error'
+                context['message'] = 'Expired OTP'
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            if user_otp.generated_otp == otp:
+                user_otp.generated_otp = None  # Reset the OTP field after successful validation
+                user_otp.save()
+
+            with transaction.atomic():
+                user_otp.user_id.email_verified = True
+                user_otp.user_id.save()
+
+            context['status'] = 'success'
+            context['message'] = 'OTP validated successful'
+            return Response(context, status=status.HTTP_200_OK)
 
         context['status'] = 'error'
         context.update(serializer.errors)
