@@ -1,6 +1,8 @@
 '''Serializers for the user account API View'''
 
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator
+
 from rest_framework import serializers
 
 
@@ -43,6 +45,16 @@ class ChangePasswordSerializer(serializers.Serializer):
     '''Serializer for changing password.'''
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
+
+
+class OTPSerializer(serializers.Serializer):
+    '''Serializer for OTP input'''
+    otp = serializers.CharField(required=True)
+
+
+class ResendOTPSerializer(serializers.Serializer):
+    '''Serializer for sending OTP to user'''
+    email = serializers.EmailField()
 
 
 class RefreshTokenSerializer(serializers.Serializer):

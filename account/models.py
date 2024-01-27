@@ -57,3 +57,10 @@ class Token(models.Model):
     refresh = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class OTP(models.Model):
+    user_id = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='user_otp')
+    generated_otp = models.IntegerField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
