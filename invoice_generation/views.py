@@ -211,7 +211,7 @@ def generate_pdf(html_string):
 	return pdfkit.from_string(
         html_string,
         configuration=pdfkit.configuration(
-            wkhtmltopdf=r'C:\Users\DELL\wkhtmltopdf\bin\wkhtmltopdf.exe'),
+            wkhtmltopdf='/wkhtmltox/wkhtmltox/bin/wkhtmltopdf'),
             options={"enable-local-file-access": ""}
         )
 
