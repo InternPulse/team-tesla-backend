@@ -64,7 +64,7 @@ class CustomAuthentication(BaseAuthentication):
     def get_access_token(self, payload):
         '''Returns an access token for user sign in.'''
         return jwt.encode(
-            {"exp": timezone.now() + timezone.timedelta(minutes=30), **payload},
+            {"exp": timezone.now() + timezone.timedelta(minutes=120), **payload},
             settings.SECRET_KEY,
             algorithm="HS256"
         )

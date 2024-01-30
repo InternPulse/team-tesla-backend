@@ -1,0 +1,124 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+    .container {
+        position: relative;
+        text-align: center;
+        color: black;
+        font-size: 16px;
+        font-family: sans-serif;
+        letter-spacing: 1px;
+        white-space: nowrap;
+    }
+
+    .business_name {
+        position: absolute;
+        top: 22%;
+        left: 10%;
+        font-size: xx-large;
+        font-weight: bold;
+    }
+
+    .email {
+        position: absolute;
+        bottom: 15%;
+        left: 25%;
+    }
+
+    .client_id {
+        position: absolute;
+        top: 30%;
+        left: 10%;
+    }
+
+    .transaction_id {
+        position: absolute;
+        top: 13.5%;
+        right: 17.5%;
+    }
+
+    .description {
+        position: absolute;
+        top: 53%;
+        left: 10%;
+        white-space: wrap;
+        max-width: 40%;
+    }
+
+    .amount {
+        position: absolute;
+        top: 43.5%;
+        right: 16%;
+        font-size: xx-large;
+        font-weight: 500;
+        color: white;
+    }
+
+    .customer_note {
+        position: absolute;
+        top: 50%;
+        left: 38%;
+    }
+
+    .status {
+        position: absolute;
+        top: 58.5%;
+        left: 38%;
+    }
+
+    .created_at {
+        position: absolute;
+        top: 30.8%;
+        right: 24.5%;
+    }
+
+    .due_at {
+        position: absolute;
+        top: 33.8%;
+        right: 24.5%;
+    }
+
+    .transaction_id2 {
+        position: absolute;
+        top: 43.5%;
+        left: 15.2%;
+    }
+
+    .created_at2 {
+        position: absolute;
+        top: 43.5%;
+        left: 34%;
+    }
+
+    .due_at2 {
+        position: absolute;
+        top: 43.5%;
+        left: 50%;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <img src="https://res.cloudinary.com/dzpyaw27k/image/upload/v1706609163/invoice_aiawdv.jpg" alt="invoice" style="width:100%;">
+  <div class="client_id">{{ client_first_name }} {{ client_last_name }}</div>
+  <div class="business_name">{{ business_name }}</div>
+  <div class="email">{{ email }}</div>
+  <div class="transaction_id">{{ transaction_id }}</div>
+  <div class="amount">N{{ amount }}</div>
+  <div class="description">{{ description }}</div>
+  <!-- <div class="customer_note">{{ customer_note }}</div> -->
+  <!-- <div class="status">{{ status }}</div> -->
+  <div class="created_at">{{ created_at }}</div>
+  <div class="due_at">{{ due_at }}</div>
+  <div class="transaction_id2">{{ transaction_id }}</div>
+  <div class="created_at2">{{ created_at }}</div>
+  <div class="due_at2">{{ due_at }}</div>
+</div>
+
+</body>
+</html>

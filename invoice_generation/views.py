@@ -1,15 +1,24 @@
 '''
 Views for invoice generation app
 '''
+import pdfkit
+import random
+import string
+from datetime import datetime
+
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework import exceptions
 
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+
 from .models import Client, Invoice
 from .serializers import ClientSerializer, InvoiceSerializer, ListInvoiceSerializer
 from account.authentication import CustomAuthentication
+from notification.notify import notify_user
 
 
 class AllUserClientsView(APIView):
@@ -37,10 +46,12 @@ class AllUserClientsView(APIView):
             context['status'] = 'success'
             context['message'] = 'Client created successful'
             context.update(serializer.data)
+            notify_user(request.user, 'client-success', context['message'])
             return Response(context, status=status.HTTP_200_OK)
-        
+
         context['status'] = 'error'
         context.update(serializer.errors)
+        notify_user(request.user, 'client-failure', 'Client failed to create')
 
         return Response(context, status=status.HTTP_400_BAD_REQUEST)
     
@@ -85,13 +96,21 @@ class GetUpdateClientView(APIView):
             context['status'] = 'success'
             context['message'] = 'Client updated successful'
             context.update(serializer.data)
+            notify_user(request.user, 'client-updated', context['message'])
             return Response(context, status=status.HTTP_200_OK)
 
         context['status'] = 'error'
         context.update(serializer.errors)
+        notify_user(request.user, 'client-failure', 'Client failed to update')
 
         return Response(context, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
+def transaction_id(tag='iv'):
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')[12:-1]  # Format: YYYYMMDDHHMMSSmmm
+    random_string = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    return f"{tag}{timestamp}{random_string}"
+
 
 class CreateClientInvoiceView(APIView):
     '''Returns all and create invoices associated with user and client'''
@@ -106,15 +125,18 @@ class CreateClientInvoiceView(APIView):
 
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            serializer.save(user_id=request.user)
+            invoice_no = transaction_id()
+            serializer.save(user_id=request.user, transaction_id=invoice_no)
 
             context['status'] = 'success'
             context['message'] = 'Invoice created successful'
             context.update(serializer.data)
+            notify_user(request.user, 'invoice-success', context['message'])
             return Response(context, status=status.HTTP_200_OK)
 
         context['status'] = 'error'
         context.update(serializer.errors)
+        notify_user(request.user, 'invoice-failure', 'Invoice failed to create')
 
         return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
@@ -160,10 +182,12 @@ class GetUpdateInvoiceView(APIView):
             context['status'] = 'success'
             context['message'] = 'Invoice updated successful'
             context.update(serializer.data)
+            notify_user(request.user, 'invoice-updated', context['message'])
             return Response(context, status=status.HTTP_200_OK)
 
         context['status'] = 'error'
         context.update(serializer.errors)
+        notify_user(request.user, 'invoice-failure', 'Client failed to update')
 
         return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
@@ -181,3 +205,62 @@ class AllUserClientInvoiceView(APIView):
         serializer = self.serializer_class(invoices, context={'request': request}, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+def generate_pdf(html_string):
+	return pdfkit.from_string(
+        html_string,
+        configuration=pdfkit.configuration(
+            wkhtmltopdf='/wkhtmltox/wkhtmltox/bin/wkhtmltopdf'),
+            options={"enable-local-file-access": ""}
+        )
+
+
+class GenerateInvoicePDFView(APIView):
+    '''Returns a download pdf format of invoice'''
+    authentication_classes = [CustomAuthentication,]
+
+    def get_object(self, request, client_id, pk):
+        context = {}
+        try:
+            invoice = Invoice.objects.get(pk=pk, user_id=request.user, client_id__id=client_id)
+            return invoice
+        except Invoice.DoesNotExist:
+            context['status'] = 'error'
+            context['message'] = 'Invoice not found'
+            return Response(context, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, client_id, pk):
+        context = {}
+        invoice = self.get_object(request, client_id, pk)
+
+        context = {
+            "business_name": invoice.user_id.business_name,
+            "email": invoice.user_id.email,
+            "client_first_name": invoice.client_id.first_name,
+            "client_last_name": invoice.client_id.last_name,
+            "transaction_id": invoice.transaction_id,
+            "amount": invoice.amount,
+            "description": invoice.description,
+            "customer_note": invoice.customer_note,
+            "draft": invoice.draft,
+            "status": invoice.status,
+            "created_at": invoice.created_at,
+            "due_at": invoice.due_at
+        }
+
+        try:
+            html_string = 'invoice/invoice.html'
+            html_string = render_to_string(html_string, context)
+            generated_pdf = generate_pdf(html_string)
+
+            response = HttpResponse(generated_pdf, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="invoice-internpulse.pdf"'
+
+            notify_user(request.user, 'download-success', 'Invoice downloaded successful')
+            return response
+        except Exception as e:
+            context['status'] = 'error'
+            context['message'] = f'Error Downloading: {e}'
+            notify_user(request.user, 'download-failure', 'Invoice failed to download')
+            return exceptions.ParseError(context)
