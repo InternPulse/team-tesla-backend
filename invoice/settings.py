@@ -112,6 +112,13 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 3,
 }
 
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Team Tesla Backend API',
+    'DESCRIPTION': 'This is Invoice Pulse web app API documentation.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False
+}
+
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 

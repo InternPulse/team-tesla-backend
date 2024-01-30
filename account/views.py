@@ -23,6 +23,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
 from account.models import Token, CustomUser, OTP
+from notification.notify import notify_user
 
 from .authentication import CustomAuthentication
 from .utils import generate_otp, send_email
@@ -171,14 +172,17 @@ class ChangePasswordView(APIView):
 
                 context['status'] = 'success'
                 context['message'] = 'Password changed successfully.'
+                notify_user(request.user, 'password-success', context['message'])
                 return Response(context, status=status.HTTP_200_OK)
 
             context['status'] = 'error'
             context['message'] = 'Incorrect old password.'
+            notify_user(request.user, 'password-failure', context['message'])
             return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
         context['status'] = 'error'
         context.update(serializer.errors)
+        notify_user(request.user, 'password-failure', 'Password failed to change')
         return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -218,15 +222,18 @@ class ResendOTPView(APIView):
                 send_email(subject, email_template, from_email, recipient_list)
                 context['status'] = 'success'
                 context['message'] = 'OTP sent successful'
+                notify_user(request.user, 'otp-success', context['message'])
                 return Response(context, status=status.HTTP_200_OK)
 
             except Exception as e:
                 context['status'] = 'error'
                 context['message'] = f'Email sending error: {e}'
+                notify_user(request.user, 'email-failure', 'OTP email failed to send')
                 return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
         context['status'] = 'error'
         context.update(serializer.errors)
+        notify_user(request.user, 'otp-failure', 'Failed to send OTP')
         return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -338,9 +345,11 @@ class ProfileView(APIView):
             serializer.save()
             context['status'] = 'success'
             context.update(serializer.data)
+            notify_user(request.user, 'profile-success', 'Profile updated successful')
             return Response(context, status.HTTP_200_OK)
 
         context['status'] = 'error'
         context.update(serializer.errors)
+        notify_user(request.user, 'profile-failure', 'Profile failed to update')
 
         return Response(context, status.HTTP_400_BAD_REQUEST)

@@ -2,8 +2,6 @@ from collections.abc import Callable, Iterable, Mapping
 import threading
 from typing import Any
 
-from django.template.loader import render_to_string
-import string
 import random
 
 from django.utils.html import strip_tags
